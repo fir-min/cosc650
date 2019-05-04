@@ -10,6 +10,8 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -59,22 +61,42 @@ public class Server{
             udpPort = Integer.parseInt(hello.split(" ")[1]);
 
             // now start udp connection
-            udpSocket = new DatagramSocket(udpPort);
-            while (sendPackets) {
-                byte[] toSend = null;
-                if (packetsSent == 0) {
-                    toSend = Arrays.copyOfRange(dataToSend, packetsSent, packetSize);
-                } else {
-                    toSend = Arrays.copyOfRange(dataToSend, packetsSent, packetSize);
-                }
+            sendPackets();
 
-                DatagramPacket dp = new DatagramPacket(toSend, toSend.length, InetAddress.getLocalHost(), udpPort);
+            /*
+            do timeout (wait for ack) or start again
+             */
 
-                packetsSent++;
-            }
+
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void sendPackets() throws SocketException, UnknownHostException {
+        udpSocket = new DatagramSocket(udpPort);
+        while (sendPackets) {
+            if (packetsSent * packetSize >= testFile.length()) {
+                sendPackets = false;
+                break;
+            }
+            byte[] toSend = null;
+            if (packetsSent == 0) {
+                toSend = Arrays.copyOfRange(dataToSend, 0, packetSize);
+            } else {
+                toSend = Arrays.copyOfRange(dataToSend, packetSize*packetsSent, (packetSize*packetsSent) + packetSize);
+            }
+
+            DatagramPacket dp = new DatagramPacket(toSend, toSend.length, InetAddress.getLocalHost(), udpPort);
+
+                /*
+                need to add logic for the following:
+                stop sending packets once all packets have been sent
+                implement the timeout
+                check for ack
+                 */
+            packetsSent++;
         }
     }
 

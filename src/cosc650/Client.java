@@ -8,29 +8,16 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 public class Client {
-    private DatagramSocket socket;
-    private InetAddress address;
+    static DatagramSocket socket;
+    static InetAddress address;
 
-    private byte[] buf;
+    static byte[] buf;
 
-    public Client() throws UnknownHostException, SocketException {
-        socket = new DatagramSocket();
-        address = InetAddress.getByName("localhost");
+    public static void run() {
+
     }
 
-    public String sendEcho(String msg) throws IOException {
-        buf = msg.getBytes();
-        DatagramPacket packet
-                = new DatagramPacket(buf, buf.length, address, 4445);
-        socket.send(packet);
-        packet = new DatagramPacket(buf, buf.length);
-        socket.receive(packet);
-        String received = new String(
-                packet.getData(), 0, packet.getLength());
-        return received;
-    }
-
-    public void close() {
-        socket.close();
+    public static void main(String[] args) {
+        run();
     }
 }
