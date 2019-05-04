@@ -50,7 +50,6 @@ public class Server{
 
             tcpSocket = new ServerSocket(21111);
             Socket clientSocket = tcpSocket.accept();
-            PrintWriter output = new PrintWriter(clientSocket.getOutputStream(), true);
             BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             String hello = input.readLine();
             if (!hello.contains("Hello")) {
@@ -59,23 +58,42 @@ public class Server{
             // the message contains hello
             System.out.println("Hello Received - UDP port: "  + hello.split(" ")[1]);
 
-            output.println("Hello Received - UDP port: "  + hello.split(" ")[1]);
+            // closing tcp connection
+            input.close();
+            clientSocket.close();
+
+
             udpPort = Integer.parseInt(hello.split(" ")[1]);
 
             // now start udp connection
+            udpSocket = new DatagramSocket();
             sendPackets();
+
+            // send done message
+            byte[] done = "done".getBytes();
+            DatagramPacket dp = new DatagramPacket(done, done.length, InetAddress.getLocalHost(), udpPort);
+            udpSocket.send(dp);
 
             /*
             do timeout (wait for ack) or start again
              */
+
+            byte[] receiveData = new byte[3];
+            DatagramPacket receive = new DatagramPacket(receiveData, receiveData.length);
+            udpSocket.setSoTimeout(timeout);
+            udpSocket.receive(receive);
+            String data = new String(receive.getData(), 0, receive.getLength());
+
+            if (data.equals("ack")) {
+                System.out.println("Ack Received. we are done.");
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void sendPackets() throws SocketException, UnknownHostException {
-        udpSocket = new DatagramSocket(udpPort);
+    public static void sendPackets() throws SocketException, UnknownHostException, IOException {
         while (sendPackets) {
             if (packetsSent * packetSize >= testFile.length()) {
                 sendPackets = false;
@@ -90,6 +108,7 @@ public class Server{
 
             DatagramPacket dp = new DatagramPacket(toSend, toSend.length, InetAddress.getLocalHost(), udpPort);
 
+            udpSocket.send(dp);
                 /*
                 need to add logic for the following:
                 stop sending packets once all packets have been sent
