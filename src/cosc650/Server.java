@@ -53,10 +53,12 @@ public class Server{
             PrintWriter output = new PrintWriter(clientSocket.getOutputStream(), true);
             BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             String hello = input.readLine();
-            if (!"hello".contains(hello)) {
+            if (!hello.contains("Hello")) {
                 System.exit(4);
             }
             // the message contains hello
+            System.out.println("Hello Received - UDP port: "  + hello.split(" ")[1]);
+
             output.println("Hello Received - UDP port: "  + hello.split(" ")[1]);
             udpPort = Integer.parseInt(hello.split(" ")[1]);
 
@@ -66,8 +68,6 @@ public class Server{
             /*
             do timeout (wait for ack) or start again
              */
-
-
 
         } catch (Exception e) {
             e.printStackTrace();
